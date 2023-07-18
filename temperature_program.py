@@ -583,14 +583,15 @@ class Application(tk.Tk):
                     app_values = []  # List to hold app input values
 
                     for app in range(num_apps):
+
                         # Retrieve input values for each app
                         pavimento_code_value = pavimentos[i]["Nome do pavimento"]
                         unidade_code_value = pavimentos[i]["unidades"][unit]["Nome da unidade"]
-                        app_code_value = unidades_apps[unit][app]["Codigo da APP"].get(
+                        app_code_value = self.unidades_apps[i][unit][app]["Codigo da APP"].get(
                         )
-                        tipo_quarto_value = unidades_apps[unit][app]["Tipo de quarto"].get(
+                        tipo_quarto_value = self.unidades_apps[i][unit][app]["Tipo de quarto"].get(
                         )
-                        nome_app_value = unidades_apps[unit][app]["Nome da APP"].get(
+                        nome_app_value = self.unidades_apps[i][unit][app]["Nome da APP"].get(
                         )
 
                         app_values.append({
@@ -603,7 +604,7 @@ class Application(tk.Tk):
 
                     pavimentos[i]["unidades"][unit]["APPs"].append(app_values)
 
-            self.pavimentos_data.append(pavimentos[0])
+            self.pavimentos_data.append(pavimentos)
             self.show_output_button()
 
         row_index = 0  # Track the current row index
@@ -612,8 +613,10 @@ class Application(tk.Tk):
             num_units = int(pavimentos[i]["Quantas unidades"])
             pavimento_name = pavimentos[i]["Nome do pavimento"]
 
+            # # Move this line inside the outer loop
+            # unidades_apps = []  # List to hold app information for the current unit
+
             unidades = pavimentos[i]["unidades"]
-            unidades_apps = []  # List to hold app information for the current unit
 
             for unit in range(num_units):
                 num_apps = int(pavimentos[i]["unidades"][unit]["Quantas APPs"])
@@ -670,8 +673,8 @@ class Application(tk.Tk):
                 # Append app_data to unidades_apps for the current unit
                 unidades_apps.append(app_data)
 
-            # Append unidades_apps to self.unidades_apps
-            self.unidades_apps.append(unidades_apps)
+                # Append unidades_apps to self.unidades_apps
+                self.unidades_apps.append(unidades_apps)
 
         next_button = tk.Button(
             frame, text="Next", command=on_next_button_click)
@@ -781,7 +784,8 @@ class Application(tk.Tk):
         if (self.term_carga.get() == True):
             cargapath = selected_carga
 
-        for pavimento in self.pavimentos_data:
+        for pavimento in self.pavimentos_data[0]:
+
             for unidade in pavimento["unidades"]:
                 for app in unidade["APPs"][0]:
                     filtered_data = self.filter_data(
