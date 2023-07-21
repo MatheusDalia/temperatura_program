@@ -164,10 +164,10 @@ class Application(tk.Tk):
 
         if room_type == "Quarto":
             # Remove lines where "SCH_OCUP_DORM:Schedule Value" column is not 1
-            df = df[df['SCH_OCUP_DORM:Schedule Value [](Hourly) '] == 1]
+            df = df[df['SCH_OCUP_DORM:Schedule Value [](Hourly)'] == 1]
         elif room_type == "Sala":
-            # Remove lines where "SCH_OCUP_SALA:Schedule Value" column is not 0
-            df = df[df['SCH_OCUP_SALA:Schedule Value [](Hourly)'] != 0]
+            # Remove lines where "SCH_OCUP_SALA:Schedule Value" column is not 1
+            df = df[df['SCH_OCUP_SALA:Schedule Value [](Hourly) '] == 1]
 
         return df
 
@@ -583,15 +583,14 @@ class Application(tk.Tk):
                     app_values = []  # List to hold app input values
 
                     for app in range(num_apps):
-
                         # Retrieve input values for each app
                         pavimento_code_value = pavimentos[i]["Nome do pavimento"]
                         unidade_code_value = pavimentos[i]["unidades"][unit]["Nome da unidade"]
-                        app_code_value = pavimentos[i]["unidades"][unit]["APPs"][0][app]["Codigo da APP"].get(
+                        app_code_value = unidades_apps[unit][app]["Codigo da APP"].get(
                         )
-                        tipo_quarto_value = pavimentos[i]["unidades"][unit]["APPs"][0][app]["Tipo de quarto"].get(
+                        tipo_quarto_value = unidades_apps[unit][app]["Tipo de quarto"].get(
                         )
-                        nome_app_value = pavimentos[i]["unidades"][unit]["APPs"][0][app]["Nome da APP"].get(
+                        nome_app_value = unidades_apps[unit][app]["Nome da APP"].get(
                         )
 
                         app_values.append({
@@ -602,10 +601,9 @@ class Application(tk.Tk):
                             "Nome da APP": nome_app_value
                         })
 
-                    pavimentos[i]["unidades"][unit]["APPs"][0].clear()
-                    pavimentos[i]["unidades"][unit]["APPs"][0].append(
-                        app_values)
-            self.pavimentos_data.append(pavimentos)
+                    pavimentos[i]["unidades"][unit]["APPs"].append(app_values)
+
+            self.pavimentos_data.append(pavimentos[0])
             self.show_output_button()
 
         row_index = 0  # Track the current row index
@@ -614,10 +612,8 @@ class Application(tk.Tk):
             num_units = int(pavimentos[i]["Quantas unidades"])
             pavimento_name = pavimentos[i]["Nome do pavimento"]
 
-            # # Move this line inside the outer loop
-            # unidades_apps = []  # List to hold app information for the current unit
-
             unidades = pavimentos[i]["unidades"]
+            unidades_apps = []  # List to hold app information for the current unit
 
             for unit in range(num_units):
                 num_apps = int(pavimentos[i]["unidades"][unit]["Quantas APPs"])
@@ -672,9 +668,10 @@ class Application(tk.Tk):
                     row_index += 3
 
                 # Append app_data to unidades_apps for the current unit
-                unidades_apps.append(app_data[0])
-                pavimentos[i]["unidades"][unit]["APPs"].append(
-                    app_data)
+                unidades_apps.append(app_data)
+
+            # Append unidades_apps to self.unidades_apps
+            self.unidades_apps.append(unidades_apps)
 
         next_button = tk.Button(
             frame, text="Next", command=on_next_button_click)
@@ -764,32 +761,6 @@ class Application(tk.Tk):
             self, text="Download JSON", command=self.download_json)
         download_button.pack()
 
-        restart_button = tk.Button(
-            self, text="Restart", command=self.restart_application)
-        restart_button.pack()
-
-    def restart_application(self):
-        self.destroy_widgets()  # Clear the current GUI
-        self.term_carga = tk.BooleanVar()
-
-        self.tipo_var = tk.StringVar()
-        self.pavimentos_var = tk.IntVar()
-        self.unidades_var = tk.IntVar()
-        self.apps_var = tk.IntVar()
-        self.quarto_var = tk.StringVar()
-
-        self.current_pavimento = 1
-        self.current_app = 1
-        self.current_unidade = 1
-        self.carga_resfr = 0
-
-        self.pavimentos_data = []
-        self.unidades_data = []
-        self.apps_data = []
-
-        self.unidades_apps = []
-        self.create_widgets()   # Recreate the initial GUI layout
-
     def download_json(self):
         file_path = filedialog.asksaveasfilename(
             defaultextension=".json", filetypes=[("JSON files", "*.json")])
@@ -810,9 +781,9 @@ class Application(tk.Tk):
         if (self.term_carga.get() == True):
             cargapath = selected_carga
 
-        for pavimento in self.pavimentos_data[0]:
+        for pavimento in self.pavimentos_data:
             for unidade in pavimento["unidades"]:
-                for app in unidade["APPs"][0][0]:
+                for app in unidade["APPs"][0]:
                     filtered_data = self.filter_data(
                         filepath, app["Tipo de quarto"])
                     if (self.term_carga.get() == True):
@@ -828,9 +799,9 @@ class Application(tk.Tk):
                         carga = self.carga_term(carga_filtered_data, filtered_data,
                                                 app["Codigo da APP"] + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', app["Codigo da APP"])
                     if app["Tipo de quarto"] == "Quarto":
-                        phft_value = (value_count / 3650) * 100
+                        phft_value = (value_count / 4380) * 100
                     else:
-                        phft_value = (value_count / 2920) * 100
+                        phft_value = (value_count / 4380) * 100
 
                     if (self.term_carga.get() == True):
 
