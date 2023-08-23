@@ -94,12 +94,196 @@ class Application(tk.Tk):
             self, text="Não", variable=self.term_carga, value=False)
         carga_radio.pack()
 
+        # Excel file input
+        excel_label = tk.Label(self, text="Excel File:")
+        excel_label.pack()
+
+        self.excel_entry = tk.Entry(self)  # Entry field for Excel file path
+        self.excel_entry.pack()
+
+        # Button to upload Excel file
+        excel_button = tk.Button(
+            self, text="Upload Excel", command=self.browse_excel)
+        excel_button.pack()
+
         next_button = tk.Button(self, text="Next", command=self.on_next_button)
         next_button.pack()
 
         json_button = tk.Button(self, text="Upload JSON",
                                 command=self.browse_json)
         json_button.pack()
+
+    def browse_excel(self):
+        excel_file_path = filedialog.askopenfilename(
+            filetypes=[("Excel files", "*.xlsx")])
+        if excel_file_path:
+            self.excel_entry.delete(0, tk.END)  # Clear any previous entry
+            # Update the entry field with the selected file path
+            self.excel_entry.insert(0, excel_file_path)
+
+    def process_excel_without_carga(self, excel_file):
+        excel_file_path = excel_file
+        if not excel_file_path:
+            messagebox.showerror("Error", "Please select an Excel file.")
+            return
+
+        workbook = openpyxl.load_workbook(excel_file_path)
+        sheet = workbook.active
+
+        filepath = selected_csv
+        if (self.term_carga.get() == True):
+            cargapath = selected_carga
+
+        # Extract data from the Excel sheet and store it in a structured format
+        data = []
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            pavimento = row[0]
+            unidade = row[1]
+            codigo = row[2]
+            nome = row[3]
+            tipo_ambiente = row[4]
+            filtered_data = self.filter_data(
+                filepath, tipo_ambiente)
+            if (self.term_carga.get() == True):
+                carga_filtered_data = self.filter_data(
+                    cargapath, tipo_ambiente)
+            max_temp = self.get_max_temperature(
+                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+            value_count = self.get_nhft_value(
+                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+            min_temp = self.get_min_temperature(
+                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+            if (self.term_carga.get() == True):
+                carga = self.carga_term(carga_filtered_data, filtered_data,
+                                        codigo + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
+            if tipo_ambiente == "Quarto":
+                phft_value = (value_count / 3650) * 100
+            else:
+                phft_value = (value_count / 2920) * 100
+
+            if (self.term_carga.get() == True):
+
+                data.append({
+                    "Pavimento": pavimento,
+                    "Unidade": unidade,
+                    "Código": codigo,
+                    "Nome": nome,
+                    "Tipo de ambiente": tipo_ambiente,
+                    "MIN TEMP": min_temp,
+                    "MAX TEMP": max_temp,
+                    "NHFT": value_count,
+                    "PHFT": phft_value,
+                    "CARGA RESF": carga - (carga_resfr/3600000),
+                    "CARGA AQUE": carga_resfr/3600000,
+                    "CARGA TERM": carga
+                })
+            else:
+                data.append({
+                    "Pavimento": pavimento,
+                    "Unidade": unidade,
+                    "Código": codigo,
+                    "Nome": nome,
+                    "Tipo de ambiente": tipo_ambiente,
+                    "MIN TEMP": min_temp,
+                    "MAX TEMP": max_temp,
+                    "NHFT": value_count,
+                    "PHFT": phft_value,
+                })
+        print(data)
+        # Process the extracted data and generate output
+        output_data = pd.DataFrame(data)
+
+        messagebox.showinfo(
+            "Information", "Click OK to export the data to Excel.")
+
+        # Ask the user to choose the directory and filename
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
+
+        if file_path:
+            export_to_excel(output_data, file_path)
+
+    def process_excel_data(self, excel_file, selected_carga):
+        excel_file_path = excel_file
+        if not excel_file_path:
+            messagebox.showerror("Error", "Please select an Excel file.")
+            return
+
+        workbook = openpyxl.load_workbook(excel_file_path)
+        sheet = workbook.active
+
+        filepath = selected_csv
+        if (self.term_carga.get() == True):
+            cargapath = selected_carga
+
+        # Extract data from the Excel sheet and store it in a structured format
+        data = []
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            pavimento = row[0]
+            unidade = row[1]
+            codigo = row[2]
+            nome = row[3]
+            tipo_ambiente = row[4]
+            filtered_data = self.filter_data(
+                filepath, tipo_ambiente)
+            if (self.term_carga.get() == True):
+                carga_filtered_data = self.filter_data(
+                    cargapath, tipo_ambiente)
+            max_temp = self.get_max_temperature(
+                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+            value_count = self.get_nhft_value(
+                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+            min_temp = self.get_min_temperature(
+                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+            if (self.term_carga.get() == True):
+                carga = self.carga_term(carga_filtered_data, filtered_data,
+                                        codigo + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
+            if tipo_ambiente == "Quarto":
+                phft_value = (value_count / 3650) * 100
+            else:
+                phft_value = (value_count / 2920) * 100
+
+            if (self.term_carga.get() == True):
+
+                data.append({
+                    "Pavimento": pavimento,
+                    "Unidade": unidade,
+                    "Código": codigo,
+                    "Nome": nome,
+                    "Tipo de ambiente": tipo_ambiente,
+                    "MIN TEMP": min_temp,
+                    "MAX TEMP": max_temp,
+                    "NHFT": value_count,
+                    "PHFT": phft_value,
+                    "CARGA RESF": carga - (carga_resfr/3600000),
+                    "CARGA AQUE": carga_resfr/3600000,
+                    "CARGA TERM": carga
+                })
+            else:
+                data.append({
+                    "Pavimento": pavimento,
+                    "Unidade": unidade,
+                    "Código": codigo,
+                    "Nome": nome,
+                    "Tipo de ambiente": tipo_ambiente,
+                    "MIN TEMP": min_temp,
+                    "MAX TEMP": max_temp,
+                    "NHFT": value_count,
+                    "PHFT": phft_value,
+                })
+        print(data)
+        # Process the extracted data and generate output
+        output_data = pd.DataFrame(data)
+
+        messagebox.showinfo(
+            "Information", "Click OK to export the data to Excel.")
+
+        # Ask the user to choose the directory and filename
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
+
+        if file_path:
+            export_to_excel(output_data, file_path)
 
     def browse_json(self):
         file_path = filedialog.askopenfilename(
@@ -149,6 +333,15 @@ class Application(tk.Tk):
         # Set the selected file path in the entry field
         self.csv_entry.insert(0, file_path)
         selected_csv = self.csv_entry.get()
+
+    def browse_carga_termica(self):
+        carga_file_path = filedialog.askopenfilename(
+            filetypes=[("CSV files", "*.csv")])
+        if carga_file_path:
+            self.carga_entry.delete(0, tk.END)
+            self.carga_entry.insert(0, carga_file_path)
+            # Store the selected carga termica file path
+            Application.selected_carga = carga_file_path
 
     def browse_carga(self):
         global selected_carga
@@ -266,10 +459,18 @@ class Application(tk.Tk):
 
     def on_next_button(self):
         csv_file = self.csv_entry.get()
+        excel_file = self.excel_entry.get()  # Get the Excel file path
 
         if not csv_file:
             messagebox.showerror("Error", "Please select a CSV file.")
             return
+        if excel_file:
+            # If an Excel file is selected, call process_excel_data
+            if self.term_carga.get() == True:
+                self.carga_termica_excel(excel_file)
+            else:
+                self.process_excel_without_carga(excel_file)
+            return  # Return to prevent the rest of the function from executing
 
         try:
             # Read the CSV file into a pandas DataFrame
@@ -295,6 +496,36 @@ class Application(tk.Tk):
                 self.apps_var.set(1)  # Set the default value for units to 1
                 self.current_pavimento = 1  # Reset the current pavimento
                 self.on_pavimentos_next_button()
+
+    def carga_termica_excel(self, excel_file):
+        self.destroy_widgets()
+
+        carga_label = tk.Label(self, text="Carga Termica File:")
+        carga_label.pack()
+
+        self.carga_entry = tk.Entry(self)
+        self.carga_entry.pack()
+
+        browse_button = tk.Button(
+            self, text="Browse", command=self.browse_carga)
+        browse_button.pack()
+
+        next_button = tk.Button(
+            self, text="Next", command=lambda: self.carga_termica_next(excel_file))
+        next_button.pack()
+
+    def carga_termica_next(self, excel_file):
+        selected_carga = self.carga_entry.get()  # Get the selected carga termica file
+        if not selected_carga:
+            messagebox.showerror(
+                "Error", "Please select a Carga Termica file.")
+            return
+
+        self.destroy_widgets()
+        self.process_excel_data(excel_file, selected_carga)
+        restart_button = tk.Button(
+            self, text="Restart", command=self.restart_application)
+        restart_button.pack()
 
     def carga_termica(self):
         # Handle the redirection to the other page with a different CSV file input
