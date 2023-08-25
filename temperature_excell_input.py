@@ -148,14 +148,14 @@ class Application(tk.Tk):
                 carga_filtered_data = self.filter_data(
                     cargapath, tipo_ambiente)
             max_temp = self.get_max_temperature(
-                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+                filtered_data, str(codigo) + ':Zone Operative Temperature [C](Hourly)')
             value_count = self.get_nhft_value(
-                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+                filtered_data, str(codigo) + ':Zone Operative Temperature [C](Hourly)')
             min_temp = self.get_min_temperature(
-                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+                filtered_data, str(codigo) + ':Zone Operative Temperature [C](Hourly)')
             if (self.term_carga.get() == True):
                 carga = self.carga_term(carga_filtered_data, filtered_data,
-                                        codigo + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
+                                        str(codigo) + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
             if tipo_ambiente == "Quarto":
                 phft_value = (value_count / 3650) * 100
             else:
