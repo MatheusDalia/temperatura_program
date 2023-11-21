@@ -230,14 +230,14 @@ class Application(tk.Tk):
                 carga_filtered_data = self.filter_data(
                     cargapath, tipo_ambiente)
             max_temp = self.get_max_temperature(
-                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+                filtered_data, str(codigo) + ':Zone Operative Temperature [C](Hourly)')
             value_count = self.get_nhft_value(
-                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+                filtered_data, str(codigo) + ':Zone Operative Temperature [C](Hourly)')
             min_temp = self.get_min_temperature(
-                filtered_data, codigo + ':Zone Operative Temperature [C](Hourly)')
+                filtered_data, str(codigo) + ':Zone Operative Temperature [C](Hourly)')
             if (self.term_carga.get() == True):
                 carga = self.carga_term(carga_filtered_data, filtered_data,
-                                        codigo + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
+                                        str(codigo) + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
             if tipo_ambiente == "Quarto":
                 phft_value = (value_count / 3650) * 100
             else:
@@ -366,6 +366,7 @@ class Application(tk.Tk):
 
     def get_max_temperature(self, df, key):
         # Find the column index for the specified key
+
         key_column_index = df.columns.get_loc(key)
 
         # Get the column for the specified key and extract the temperature values
@@ -426,7 +427,7 @@ class Application(tk.Tk):
         column_titles = carga_filtered.columns
 
         temp_threshold = float(self.threshold_var.get())
-        temperature_column = carga_filtered[codigo_solo +
+        temperature_column = carga_filtered[str(codigo_solo) +
                                             ":Zone Operative Temperature [C](Hourly)_filtered"]
         # Filter rows where temperature is above the threshold
         if (temp_threshold == 26):
@@ -442,9 +443,9 @@ class Application(tk.Tk):
             # Sum all the values in the filtered area
             total_sum = codigo_column.sum()
 
-            if codigo_solo + " IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Heating Energy [J](Hourly)" in column_titles:
+            if str(codigo_solo) + " IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Heating Energy [J](Hourly)" in column_titles:
                 # Get the additional column values
-                additional_column = filtered_rows[codigo_solo +
+                additional_column = filtered_rows[str(codigo_solo) +
                                                   " IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Heating Energy [J](Hourly)"]
                 # Sum the values in the additional column
                 carga_resfr = additional_column.sum()
