@@ -189,7 +189,6 @@ class Application(tk.Tk):
                     "NHFT": value_count,
                     "PHFT": phft_value,
                 })
-        print(data)
         # Process the extracted data and generate output
         output_data = pd.DataFrame(data)
 
@@ -240,6 +239,8 @@ class Application(tk.Tk):
                                         str(codigo) + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
             if tipo_ambiente == "Quarto":
                 phft_value = (value_count / 3650) * 100
+            elif tipo_ambiente == "Misto":
+                phft_value = (value_count / 6570) * 100
             else:
                 phft_value = (value_count / 2920) * 100
 
@@ -271,7 +272,6 @@ class Application(tk.Tk):
                     "NHFT": value_count,
                     "PHFT": phft_value,
                 })
-        print(data)
         # Process the extracted data and generate output
         output_data = pd.DataFrame(data)
 
@@ -361,7 +361,9 @@ class Application(tk.Tk):
         elif room_type == "Sala":
             # Remove lines where "SCH_OCUP_SALA:Schedule Value" column is not 0
             df = df[df['SCH_OCUP_SALA:Schedule Value [](Hourly)'] != 0]
-
+        elif room_type == "Misto":
+            # Remove lines where "SCH_OCUP_MISTO:Schedule Value" column is not 0
+            df = df[df['SCH_OCUP_MISTO:Schedule Value [](Hourly)'] != 0]
         return df
 
     def get_max_temperature(self, df, key):
@@ -878,6 +880,10 @@ class Application(tk.Tk):
                         quarto_frame, text="Sala", variable=quarto_var, onvalue="Sala")
                     sala_checkbox.pack(side="left")
 
+                    misto_checkbox = tk.Checkbutton(
+                        quarto_frame, text="Misto", variable=quarto_var, onvalue="Misto")
+                    misto_checkbox.pack(side="left")
+
                     nome_label = tk.Label(frame, text="Nome da APP?")
                     nome_label.grid(row=row_index + 1, column=4, sticky="w")
 
@@ -1055,6 +1061,8 @@ class Application(tk.Tk):
                                                 app["Codigo da APP"] + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', app["Codigo da APP"])
                     if app["Tipo de quarto"] == "Quarto":
                         phft_value = (value_count / 3650) * 100
+                    elif app["Tipo de quarto"] == "Misto":
+                        phft_value = (value_count / 6570) * 100
                     else:
                         phft_value = (value_count / 2920) * 100
 
