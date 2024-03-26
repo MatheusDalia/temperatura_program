@@ -158,6 +158,8 @@ class Application(tk.Tk):
                                         str(codigo) + ' IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy [J](Hourly)', codigo)
             if tipo_ambiente == "Quarto":
                 phft_value = (value_count / 3650) * 100
+            elif tipo_ambiente == "Misto":
+                phft_value = (value_count / 6570) * 100
             else:
                 phft_value = (value_count / 2920) * 100
 
@@ -363,7 +365,7 @@ class Application(tk.Tk):
             df = df[df['SCH_OCUP_SALA:Schedule Value [](Hourly)'] != 0]
         elif room_type == "Misto":
             # Remove lines where "SCH_OCUP_MISTO:Schedule Value" column is not 0
-            df = df[df['SCH_OCUP_MISTO:Schedule Value [](Hourly)'] != 0]
+            df = df[df['SCH_OCUP_MISTO:Schedule Value [](Hourly) '] != 0]
         return df
 
     def get_max_temperature(self, df, key):
@@ -1063,7 +1065,7 @@ class Application(tk.Tk):
                         phft_value = (value_count / 3650) * 100
                     elif app["Tipo de quarto"] == "Misto":
                         phft_value = (value_count / 6570) * 100
-                    else:
+                    elif app["Tipo de quarto"] == "Sala":
                         phft_value = (value_count / 2920) * 100
 
                     if (self.term_carga.get() == True):
