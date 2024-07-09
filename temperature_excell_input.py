@@ -159,6 +159,7 @@ class Application(tk.Tk):
             if tipo_ambiente == "Quarto":
                 phft_value = (value_count / 3650) * 100
             elif tipo_ambiente == "Misto":
+                print('Misto aqui')
                 phft_value = (value_count / 6570) * 100
             else:
                 phft_value = (value_count / 2920) * 100
@@ -357,15 +358,22 @@ class Application(tk.Tk):
     def filter_data(self, csv_file, room_type):
         df = pd.read_csv(csv_file)  # Read the CSV file into a pandas DataFrame
 
-        if room_type == "Quarto":
+        # Remove any leading or trailing spaces from the column names
+        df.columns = df.columns.str.strip()
+
+        # Normalize room_type to lowercase
+        room_type = room_type.lower()
+
+        if room_type == "quarto":
             # Remove lines where "SCH_OCUP_DORM:Schedule Value" column is not 1
-            df = df[df['SCH_OCUP_DORM:Schedule Value [](Hourly) '] == 1]
-        elif room_type == "Sala":
+            df = df[df['SCH_OCUP_DORM:Schedule Value [](Hourly)'] == 1]
+        elif room_type == "sala":
             # Remove lines where "SCH_OCUP_SALA:Schedule Value" column is not 0
             df = df[df['SCH_OCUP_SALA:Schedule Value [](Hourly)'] != 0]
-        elif room_type == "Misto":
-            # Remove lines where "SCH_OCUP_MISTO:Schedule Value" column is not 0
-            df = df[df['SCH_OCUP_MISTO:Schedule Value [](Hourly) '] != 0]
+        elif room_type == "misto":
+            # Remove lines where "SCH_OCUP_MISTO:Schedule Value" column is exactly 0
+            df = df[df['SCH_OCUP_MISTO:Schedule Value [](Hourly)'] != 0.0]
+
         return df
 
     def get_max_temperature(self, df, key):
@@ -1064,6 +1072,7 @@ class Application(tk.Tk):
                     if app["Tipo de quarto"] == "Quarto":
                         phft_value = (value_count / 3650) * 100
                     elif app["Tipo de quarto"] == "Misto":
+                        print("Misto aqui no phft: %d" % value_count)
                         phft_value = (value_count / 6570) * 100
                     elif app["Tipo de quarto"] == "Sala":
                         phft_value = (value_count / 2920) * 100
